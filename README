@@ -88,3 +88,6 @@ use the -D option.
 The status of the VPN can be queried using the "tinc" command, which connects
 to a running tinc daemon via a control connection. The same tool also makes it
 easy to start and stop tinc, and to change its configuration.
+
+!!Extremely Experimental!!Do not rely and no support!
+This patch is based on 1.1pre14 version, with path finding algorithm patched with shortest path algorithm.
