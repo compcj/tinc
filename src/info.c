@@ -74,7 +74,7 @@ static int info_node(int fd, const char *item) {
 		if(n == 2)
 			break;
 
-		if(n != 19) {
+		if(n != 20) {
 			fprintf(stderr, "Unable to parse node dump from tincd.\n");
 			return 1;
 		}

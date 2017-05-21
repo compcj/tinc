@@ -1138,7 +1138,7 @@ static int cmd_dump(int argc, char *argv[]) {
 		switch(req) {
 			case REQ_DUMP_NODES: {
 				int n = sscanf(line, "%*d %*d %s %s %s port %s %d %d %d %d %x %x %s %s %d %d %hd %hd %hd %ld", node, id, host, port, &cipher, &digest, &maclength, &compression, &options, &status_int, nexthop, via, &distance, &path_distance, &pmtu, &minmtu, &maxmtu, &last_state_change);
-				if(n != 17) {
+				if(n != 18) {
 					fprintf(stderr, "Unable to parse node dump from tincd: %s\n", line);
 					return 1;
 				}
