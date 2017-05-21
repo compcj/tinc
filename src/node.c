@@ -188,7 +188,7 @@ bool dump_nodes(connection_t *c) {
 		for (size_t c = 0; c < sizeof n->id; ++c)
 			snprintf(id + 2 * c, 3, "%02hhx", n->id.x[c]);
 		id[sizeof id - 1] = 0;
-		send_request(c, "%d %d %s %s %s %d %d %d %d %x %x %s %s %d %hd %hd %hd %ld", CONTROL, REQ_DUMP_NODES,
+		send_request(c, "%d %d %s %s %s %d %d %d %d %x %x %s %s %d %d %hd %hd %hd %ld", CONTROL, REQ_DUMP_NODES,
 			   n->name, id, n->hostname ?: "unknown port unknown",
 #ifdef DISABLE_LEGACY
 			   0, 0, 0,
@@ -196,7 +196,7 @@ bool dump_nodes(connection_t *c) {
 			   cipher_get_nid(n->outcipher), digest_get_nid(n->outdigest), (int)digest_length(n->outdigest),
 #endif
 			   n->outcompression, n->options, bitfield_to_int(&n->status, sizeof n->status),
-			   n->nexthop ? n->nexthop->name : "-", n->via ? n->via->name ?: "-" : "-", n->distance,
+			   n->nexthop ? n->nexthop->name : "-", n->via ? n->via->name ?: "-" : "-", n->distance, n->path_distance,
 			   n->mtu, n->minmtu, n->maxmtu, (long)n->last_state_change);
 	}
 

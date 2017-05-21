@@ -115,6 +115,105 @@ static void mst_kruskal(void) {
 	}
 }
 
+static void sssp_spfa(void) {
+	list_t *todo_list = list_alloc(NULL);
+
+	/* Clear visited status on nodes */
+
+	for splay_each(node_t, n, node_tree) {
+		n->status.visited = false;
+		n->status.indirect = true;
+		n->distance = -1;
+		n->path_distance = -1;
+	}
+
+	/* Begin with myself */
+
+	myself->status.visited = true;
+	myself->status.indirect = false;
+	myself->nexthop = myself;
+	myself->prevedge = NULL;
+	myself->via = myself;
+	myself->distance = 0;
+	myself->path_distance = 0;
+
+	list_insert_head(todo_list, myself);
+
+	/* Loop while todo_list is filled */
+
+	for list_each(node_t, n, todo_list) {                   /* "n" is the node from which we start */
+		logger(DEBUG_SCARY_THINGS, LOG_DEBUG, " Examining edges from %s", n->name);
+
+		if(n->distance < 0)
+			abort();
+
+		for splay_each(edge_t, e, n->edge_tree) {       /* "e" is the edge connected to "from" */
+			if(!e->reverse || e->to == myself)
+				continue;
+
+			/* Situation:
+
+				   /
+				  /
+			   ----->(n)---e-->(e->to)
+				  \
+				   \
+
+			   Where e is an edge, (n) and (e->to) are nodes.
+			   n->address is set to the e->address of the edge left of n to n.
+			   We are currently examining the edge e right of n from n:
+
+			   - If edge e provides for better reachability of e->to, update
+			     e->to and (re)add it to the todo_list to (re)examine the reachability
+			     of nodes behind it.
+			 */
+
+			bool indirect = n->status.indirect || e->options & OPTION_INDIRECT;
+
+
+
+			/*
+			iff:
+			1. e->to not visited
+			2. shorter path to e->to found
+			then:
+			update e->to and re-add node e->to to queue
+			*/
+
+			if(e->to->status.visited
+			   && (
+			     (n->path_distance + e->weight > e->to->path_distance)
+			     || (n->path_distance + e->weight == e->to->path_distance && n->distance + 1 >= e->to->distance)
+			     )
+			   )
+				continue;
+
+			if (!e->to->status.visited) { //only udpate distance on first visit
+				e->to->distance = n->distance + 1;
+			}
+			// Only update nexthop if it doesn't increase the path length
+
+			e->to->status.visited = true;
+			e->to->status.indirect = indirect;
+			e->to->prevedge = e;
+			e->to->via = indirect ? n->via : e->to;
+			e->to->nexthop = (n->nexthop == myself) ? e->to : n->nexthop;
+			e->to->options = e->options;
+			e->to->path_distance = n->path_distance + e->weight;
+
+			if(!e->to->status.reachable || (e->to->address.sa.sa_family == AF_UNSPEC && e->address.sa.sa_family != AF_UNKNOWN))
+				update_node_udp(e->to, &e->address);
+
+			list_insert_tail(todo_list, e->to);
+		}
+
+		next = node->next; /* Because the list_insert_tail() above could have added something extra for us! */
+		list_delete_node(todo_list, node);
+	}
+
+	list_free(todo_list);
+}
+
 /* Implementation of a simple breadth-first search algorithm.
    Running time: O(E)
 */
@@ -297,7 +396,8 @@ static void check_reachability(void) {
 
 void graph(void) {
 	subnet_cache_flush();
-	sssp_bfs();
+	//sssp_bfs();
+	sssp_spfa();
 	check_reachability();
 	mst_kruskal();
 }
